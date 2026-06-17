@@ -19,6 +19,12 @@ export interface Options {
   root: string;
   /** Optional subdirectory to scope to, relative to root. */
   dir?: string;
+  /**
+   * Explicit set of top-level paths (dirs or files, POSIX-relative) to
+   * include. When set, only files within these paths are kept. Used by
+   * interactive focus mode. Undefined means "no include restriction".
+   */
+  include?: string[];
   /** Allowed file extensions (without dots), or undefined for "all". */
   extensions?: string[];
   /** Extra ignore patterns supplied via flags. */

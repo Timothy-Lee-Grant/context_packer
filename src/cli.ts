@@ -5,6 +5,8 @@ export interface ParsedArgs {
   options: RawOptions;
   /** True when a TTY-aware spinner/colors should be suppressed. */
   quiet: boolean;
+  /** True when the user invoked the `interactive` subcommand. */
+  interactive: boolean;
 }
 
 /** Raw flag shape as commander hands it back, before normalization. */
@@ -55,7 +57,7 @@ export function buildProgram(): Command {
       "Bundle your codebase into clean, token-efficient context for any LLM.",
     )
     .version("0.1.0")
-    .argument("[root]", "directory to pack", ".")
+    .argument("[root]", "directory to pack (or 'interactive' for focus mode)", ".")
     .option("-d, --dir <path>", "limit to a subdirectory (e.g. src/backend)")
     .option("-e, --ext <list>", "only include these extensions (e.g. ts,js,json)")
     .option(
@@ -92,7 +94,11 @@ export function parseArgs(argv: string[]): ParsedArgs {
   program.parse(argv);
 
   const flags = program.opts<RawFlags>();
-  const root = program.args[0] ?? ".";
+  const firstArg = program.args[0] ?? ".";
+
+  // `interactive` is accepted as the positional argument to launch focus mode.
+  const interactive = firstArg === "interactive";
+  const root = interactive ? "." : firstArg;
 
   const options: RawOptions = {
     root,
@@ -104,5 +110,5 @@ export function parseArgs(argv: string[]): ParsedArgs {
     maxFileSize: flags.maxSize ? parseSize(flags.maxSize) : undefined,
   };
 
-  return { options, quiet: flags.quiet ?? false };
+  return { options, quiet: flags.quiet ?? false, interactive };
 }

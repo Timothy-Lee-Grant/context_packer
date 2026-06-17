@@ -11,6 +11,7 @@ export const DEFAULT_TOKEN_WARN_THRESHOLD = 128_000;
 export interface RawOptions {
   root?: string;
   dir?: string;
+  include?: string[];
   extensions?: string[];
   exclude?: string[];
   maxFileSize?: number;
@@ -34,6 +35,7 @@ export function resolveOptions(raw: RawOptions = {}): Options {
   return {
     root: path.resolve(raw.root ?? process.cwd()),
     dir: raw.dir,
+    include: raw.include,
     extensions: raw.extensions,
     exclude: raw.exclude ?? [],
     maxFileSize: raw.maxFileSize ?? DEFAULT_MAX_FILE_SIZE,

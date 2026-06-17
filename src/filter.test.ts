@@ -79,4 +79,18 @@ describe("filterFiles", () => {
     );
     expect(result.kept.map((f) => f.relativePath)).toEqual(["src/in.ts"]);
   });
+
+  it("respects an explicit include set", async () => {
+    const a = await make("src/a.ts", "x");
+    const b = await make("docs/b.ts", "y");
+    const c = await make("README.md", "z");
+    const result = await filterFiles(
+      [a, b, c],
+      resolveOptions({ root, include: ["src", "README.md"] }),
+    );
+    expect(result.kept.map((f) => f.relativePath).sort()).toEqual([
+      "README.md",
+      "src/a.ts",
+    ]);
+  });
 });

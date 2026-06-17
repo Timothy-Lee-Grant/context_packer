@@ -67,12 +67,25 @@ export async function filterFiles(
     ? options.dir.split(path.sep).join("/").replace(/\/+$/, "")
     : undefined;
 
+  // Normalize an optional include set (interactive focus mode).
+  const includes = options.include?.map((p) =>
+    p.split(path.sep).join("/").replace(/\/+$/, ""),
+  );
+
   const allowExt = options.extensions?.map((e) => e.toLowerCase());
 
   for (const file of files) {
     // Directory scoping.
     if (scope && !isWithin(file.relativePath, scope)) {
       continue; // Out of scope is silent, not a "skip" worth reporting.
+    }
+
+    // Explicit include set: keep only files within a chosen path.
+    if (
+      includes &&
+      !includes.some((inc) => isWithin(file.relativePath, inc))
+    ) {
+      continue; // Not selected — silently excluded.
     }
 
     const ext = extOf(file.relativePath);

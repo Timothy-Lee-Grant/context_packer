@@ -4,6 +4,9 @@ import { walk } from "./walker.js";
 import { filterFiles } from "./filter.js";
 import { readFiles } from "./reader.js";
 import { formatBundle } from "./formatter.js";
+import { estimateTokens } from "./tokens.js";
+import { deliver } from "./output.js";
+import { buildReport } from "./report.js";
 
 /** Format today's date as YYYY-MM-DD for the bundle header. */
 function today(): string {
@@ -11,9 +14,9 @@ function today(): string {
 }
 
 /**
- * Phase 3 entry point: walk → filter → read → format. Emits the Markdown
- * bundle to stdout and a short summary (file/skip counts) to stderr. Token
- * estimation, output sinks, and the full CLI layer arrive in later phases.
+ * Phase 4 entry point: walk → filter → read → format → estimate → emit.
+ * Delivers the bundle to clipboard/file/stdout and prints a summary with an
+ * estimated token count. The full CLI argument layer arrives in Phase 5.
  */
 async function main(): Promise<void> {
   const options = resolveOptions();
@@ -24,20 +27,22 @@ async function main(): Promise<void> {
   const { files, skipped: unreadable } = await readFiles(kept);
 
   const bundle = formatBundle({ files, generatedOn: today() });
-  process.stdout.write(bundle);
+  const tokenEstimate = estimateTokens(bundle);
 
-  const skipped = [...filteredOut, ...unreadable];
-  console.error(`\n${files.length} files included.`);
-  if (skipped.length > 0) {
-    const byReason = skipped.reduce<Record<string, number>>((acc, s) => {
-      acc[s.reason] = (acc[s.reason] ?? 0) + 1;
-      return acc;
-    }, {});
-    const summary = Object.entries(byReason)
-      .map(([reason, count]) => `${count} ${reason}`)
-      .join(", ");
-    console.error(`${skipped.length} skipped (${summary}).`);
-  }
+  const delivery = await deliver(bundle, {
+    clipboard: options.clipboard,
+    output: options.output,
+  });
+
+  const report = buildReport({
+    fileCount: files.length,
+    charCount: bundle.length,
+    tokenEstimate,
+    tokenWarnThreshold: options.tokenWarnThreshold,
+    skipped: [...filteredOut, ...unreadable],
+    delivery,
+  });
+  console.error(report);
 }
 
 main().catch((err) => {

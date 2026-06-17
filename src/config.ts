@@ -4,6 +4,9 @@ import type { Options } from "./types.js";
 /** Default maximum file size before a file is skipped as "too-large" (256 KB). */
 export const DEFAULT_MAX_FILE_SIZE = 256 * 1024;
 
+/** Default token threshold above which a context-window warning is shown (128k). */
+export const DEFAULT_TOKEN_WARN_THRESHOLD = 128_000;
+
 /** Raw, partially-specified options (e.g. from CLI flags). */
 export interface RawOptions {
   root?: string;
@@ -11,6 +14,9 @@ export interface RawOptions {
   extensions?: string[];
   exclude?: string[];
   maxFileSize?: number;
+  clipboard?: boolean;
+  output?: string;
+  tokenWarnThreshold?: number;
 }
 
 /** Normalize a comma/space separated extension list into clean lowercase tokens. */
@@ -31,5 +37,8 @@ export function resolveOptions(raw: RawOptions = {}): Options {
     extensions: raw.extensions,
     exclude: raw.exclude ?? [],
     maxFileSize: raw.maxFileSize ?? DEFAULT_MAX_FILE_SIZE,
+    clipboard: raw.clipboard ?? false,
+    output: raw.output,
+    tokenWarnThreshold: raw.tokenWarnThreshold ?? DEFAULT_TOKEN_WARN_THRESHOLD,
   };
 }

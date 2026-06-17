@@ -25,6 +25,12 @@ export interface Options {
   exclude: string[];
   /** Maximum size in bytes before a file is skipped. */
   maxFileSize: number;
+  /** Copy the bundle to the clipboard. */
+  clipboard: boolean;
+  /** Write the bundle to this file path (relative to cwd or absolute). */
+  output?: string;
+  /** Warn when the estimated token count exceeds this threshold. */
+  tokenWarnThreshold: number;
 }
 
 /** Why a candidate file did not make it into the bundle. */

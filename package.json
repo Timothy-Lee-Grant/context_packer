@@ -1,0 +1,52 @@
+{
+  "name": "git-context-pack",
+  "version": "0.1.0",
+  "description": "Bundle your codebase into clean, token-efficient context for any LLM — with one command.",
+  "type": "module",
+  "bin": {
+    "git-context-pack": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "llm",
+    "context",
+    "cli",
+    "codebase",
+    "gitignore",
+    "ai",
+    "prompt",
+    "tokens"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "ignore": "^5.3.1",
+    "p-limit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}

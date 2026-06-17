@@ -1,51 +1,46 @@
+import { parseArgs } from "./cli.js";
 import { resolveOptions } from "./config.js";
-import { buildIgnore } from "./ignore.js";
-import { walk } from "./walker.js";
-import { filterFiles } from "./filter.js";
-import { readFiles } from "./reader.js";
-import { formatBundle } from "./formatter.js";
-import { estimateTokens } from "./tokens.js";
+import { pack } from "./pack.js";
 import { deliver } from "./output.js";
 import { buildReport } from "./report.js";
-
-/** Format today's date as YYYY-MM-DD for the bundle header. */
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+import { createSpinner } from "./spinner.js";
 
 /**
- * Phase 4 entry point: walk → filter → read → format → estimate → emit.
- * Delivers the bundle to clipboard/file/stdout and prints a summary with an
- * estimated token count. The full CLI argument layer arrives in Phase 5.
+ * CLI entry point. Parses arguments, runs the pack pipeline behind a spinner,
+ * delivers the bundle to the requested sink(s), and prints a summary — unless
+ * --quiet is set or output is non-interactive.
  */
 async function main(): Promise<void> {
-  const options = resolveOptions();
+  const { options: raw, quiet } = parseArgs(process.argv);
+  const options = resolveOptions(raw);
 
-  const ig = await buildIgnore(options.root, options.exclude);
-  const walked = await walk(options.root, ig);
-  const { kept, skipped: filteredOut } = await filterFiles(walked, options);
-  const { files, skipped: unreadable } = await readFiles(kept);
+  const spinner = await createSpinner(quiet);
+  let result;
+  try {
+    result = await pack(options, (stage) => spinner.update(stage));
+  } finally {
+    spinner.stop();
+  }
 
-  const bundle = formatBundle({ files, generatedOn: today() });
-  const tokenEstimate = estimateTokens(bundle);
-
-  const delivery = await deliver(bundle, {
+  const delivery = await deliver(result.bundle, {
     clipboard: options.clipboard,
     output: options.output,
   });
 
-  const report = buildReport({
-    fileCount: files.length,
-    charCount: bundle.length,
-    tokenEstimate,
-    tokenWarnThreshold: options.tokenWarnThreshold,
-    skipped: [...filteredOut, ...unreadable],
-    delivery,
-  });
-  console.error(report);
+  if (!quiet) {
+    const report = buildReport({
+      fileCount: result.fileCount,
+      charCount: result.bundle.length,
+      tokenEstimate: result.tokenEstimate,
+      tokenWarnThreshold: options.tokenWarnThreshold,
+      skipped: result.skipped,
+      delivery,
+    });
+    console.error(report);
+  }
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error(err instanceof Error ? err.message : err);
   process.exitCode = 1;
 });

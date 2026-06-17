@@ -94,9 +94,11 @@ git-context-pack [options]
 |------|-------|-------------|
 | `--dir <path>` | `-d` | Limit the bundle to a specific directory (e.g. `src/backend`). |
 | `--ext <list>` | `-e` | Only include files with these extensions (e.g. `ts,js,json`). |
-| `--exclude <glob>` | `-x` | Additional patterns to skip beyond `.gitignore`. |
-| `--clipboard` | `-c` | Copy the final payload to the clipboard instead of (or alongside) printing. |
+| `--exclude <pattern>` | `-x` | Additional pattern to skip beyond `.gitignore` (repeatable). |
+| `--clipboard` | `-c` | Copy the final payload to the clipboard. |
 | `--output <file>` | `-o` | Write the bundle to a file. |
+| `--max-size <size>` | | Skip files larger than this (e.g. `256kb`, `1mb`). |
+| `--quiet` | `-q` | Suppress the spinner and summary. |
 
 ### Examples
 
@@ -106,7 +108,18 @@ git-context-pack --dir src/backend --ext ts,json --clipboard
 
 # Pack the whole repo to a file
 git-context-pack --output context.md
+
+# Interactively pick which directories and changed files to include
+git-context-pack interactive
 ```
+
+### Interactive focus mode
+
+Running `git-context-pack interactive` opens a checkbox prompt of your
+top-level directories and any files changed since your last commit (surfaced
+via `git status` and pre-selected). Toggle what you want, hit enter, and only
+those paths are packed — handy when you want to share just the part of the
+codebase relevant to your current question.
 
 ---
 

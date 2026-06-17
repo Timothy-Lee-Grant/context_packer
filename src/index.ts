@@ -3,11 +3,17 @@ import { buildIgnore } from "./ignore.js";
 import { walk } from "./walker.js";
 import { filterFiles } from "./filter.js";
 import { readFiles } from "./reader.js";
+import { formatBundle } from "./formatter.js";
+
+/** Format today's date as YYYY-MM-DD for the bundle header. */
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 /**
- * Phase 2 entry point: walk → filter → read. Prints the files that would be
- * bundled plus a summary of what was skipped and why. Markdown formatting,
- * token estimation, and the full CLI layer arrive in later phases.
+ * Phase 3 entry point: walk → filter → read → format. Emits the Markdown
+ * bundle to stdout and a short summary (file/skip counts) to stderr. Token
+ * estimation, output sinks, and the full CLI layer arrive in later phases.
  */
 async function main(): Promise<void> {
   const options = resolveOptions();
@@ -17,13 +23,10 @@ async function main(): Promise<void> {
   const { kept, skipped: filteredOut } = await filterFiles(walked, options);
   const { files, skipped: unreadable } = await readFiles(kept);
 
+  const bundle = formatBundle({ files, generatedOn: today() });
+  process.stdout.write(bundle);
+
   const skipped = [...filteredOut, ...unreadable];
-
-  for (const file of files) {
-    const tag = file.language ? ` [${file.language}]` : "";
-    console.log(`${file.relativePath}${tag} — ${file.contents.length} chars`);
-  }
-
   console.error(`\n${files.length} files included.`);
   if (skipped.length > 0) {
     const byReason = skipped.reduce<Record<string, number>>((acc, s) => {

@@ -35,3 +35,20 @@ export interface SkippedFile {
   relativePath: string;
   reason: SkipReason;
 }
+
+/** A file that survived filtering and had its contents read. */
+export interface ReadFile {
+  relativePath: string;
+  /** UTF-8 text contents of the file. */
+  contents: string;
+  /** Markdown language tag inferred from the extension (may be empty). */
+  language: string;
+  /** Size in bytes. */
+  size: number;
+}
+
+/** The outcome of the filter stage: what to read, and what was dropped. */
+export interface FilterResult {
+  kept: FileEntry[];
+  skipped: SkippedFile[];
+}

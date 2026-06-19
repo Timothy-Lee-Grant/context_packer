@@ -1,6 +1,15 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import ignore, { type Ignore } from "ignore";
+import ignoreDefault, { type Ignore } from "ignore";
+
+/**
+ * `ignore` is a CommonJS package that exposes its factory via `export =`.
+ * Under NodeNext module resolution TypeScript types the default binding as the
+ * module namespace, which has no call signature — so calling it directly trips
+ * TS2349 even though the runtime value is the callable factory. Aliasing it to
+ * the real factory signature keeps the call site clean and type-safe.
+ */
+const createIgnore = ignoreDefault as unknown as () => Ignore;
 
 /**
  * Directories and files that should always be skipped, regardless of whether
@@ -33,7 +42,7 @@ export async function buildIgnore(
   root: string,
   extraPatterns: string[] = [],
 ): Promise<Ignore> {
-  const ig = ignore();
+  const ig = createIgnore();
   ig.add(BUILT_IN_IGNORES);
 
   const gitignorePath = path.join(root, ".gitignore");
